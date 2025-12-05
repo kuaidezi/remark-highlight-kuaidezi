@@ -3,13 +3,21 @@
     "target": "ES2020",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "declaration": true, 
+    "declaration": true, // 生成类型声明文件
+    "declarationDir": "./dist", // 类型文件输出目录
+    "emitDeclarationOnly": false, // 编译 TS 时同时生成类型文件
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test"
+  ]
 }

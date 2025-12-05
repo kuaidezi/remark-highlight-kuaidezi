@@ -21,7 +21,12 @@ export default [
     plugins: [
       resolve(), // 解析第三方依赖
       commonjs(), // 转换 CommonJS 为 ES 模块
-      typescript({ tsconfig: "./tsconfig.json" }), // TS 编译
+      typescript({
+        tsconfig: "./tsconfig.json",
+        declaration: true, // 必须：生成 .d.ts 文件
+        declarationDir: "dist", // 类型文件输出到 dist 目录
+        rootDir: "src", // 源码根目录
+      }), // TS 编译
       // 新增：压缩配置（移除注释 + 压缩代码）
       terser({
         compress: {
