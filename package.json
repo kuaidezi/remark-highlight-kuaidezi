@@ -1,19 +1,25 @@
 {
-  "name": "remark-highlight",
-  "version": "1.0.0",
+  "name": "remark-highlight-kuaidezi",
+  "version": "1.0.1",
   "type": "module",
   "description": "A remark plugin for parsing !!content!! as highlighted text",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "import": "./dist/index.esm.js"
+    }
+  },
   "files": [
-    "dist",
+    "dist/",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "build": "rimraf dist && rollup -c",
-    "test": "npm run build && node ./test/index.js"
+    "test": "npm run build && node ./test/index.js",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "remark",
@@ -25,16 +31,17 @@
   "author": "kuaidezi",
   "license": "MIT",
   "dependencies": {
-    "@types/mdast": "^4.0.3",
-    "@types/unist": "^3.0.2",
     "tslib": "^2.8.1",
     "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.1.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.0.0",
+    "@types/mdast": "^4.0.3",
     "@types/node": "^16.18.60",
+    "@types/unist": "^3.0.2",
     "prettier": "^2.8.8",
     "rehype-stringify": "^9.0.3",
     "remark-parse": "^10.0.1",
