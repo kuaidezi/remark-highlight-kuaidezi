@@ -1,21 +1,20 @@
 {
   "name": "remark-highlight-kuaidezi",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "description": "A remark plugin for parsing !!content!! as highlighted text",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "typings": "dist/index.d.ts",
   "exports": {
     ".": {
-      "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.cjs.js"
-      },
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.esm.js"
-      }
-    }
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs.js",
+      "import": "./dist/index.esm.js",
+      "default": "./dist/index.esm.js"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist/",
@@ -32,7 +31,9 @@
     "remark-plugin",
     "markdown",
     "highlight",
-    "react-markdown"
+    "react-markdown",
+    "double-bang",
+    "text-highlight"
   ],
   "author": "kuaidezi",
   "license": "MIT",

@@ -1,63 +1,79 @@
 import typescript from "@rollup/plugin-typescript";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
-import terser from "@rollup/plugin-terser"; // 新增：压缩插件
+import terser from "@rollup/plugin-terser";
 import { readFileSync } from "fs";
+import { dirname, resolve as pathResolve } from "path";
+import { fileURLToPath } from "url";
 
-// 读取 package.json 中的包信息（可选，用于注释替换）
-const pkg = JSON.parse(readFileSync("./package.json", "utf8"));
+// 解决 ES 模块 __dirname 问题，统一路径解析
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const pkg = JSON.parse(readFileSync(pathResolve(__dirname, "package.json"), "utf8"));
+
+// 基础 TS 配置（仅生成类型文件的核心配置）
+const baseTsOptions = {
+  tsconfig: pathResolve(__dirname, "tsconfig.json"),
+  rootDir: pathResolve(__dirname, "src"), // 源码根目录
+  // 核心：只在 CJS 产物中生成类型文件，ESM 产物不重复生成
+  declaration: true,
+  declarationDir: pathResolve(__dirname, "dist"),
+  emitDeclarationOnly: false, // 编译 TS 同时生成 JS + 类型文件
+};
 
 export default [
-  // CommonJS 版本（适配 Node.js）
+  // 1. CommonJS 版本（生成类型文件 + JS 产物）
   {
-    input: "src/index.ts",
+    input: pathResolve(__dirname, "src/index.ts"), // 绝对路径避免解析问题
     output: {
-      file: "dist/index.cjs.js",
+      file: pathResolve(__dirname, "dist/index.cjs.js"),
       format: "cjs",
-      sourcemap: false, // 生产包关闭 sourcemap（减小体积）
-      // 保留版权注释（可选，如 MIT 许可证），移除其他注释
+      sourcemap: false,
       banner: `/*! ${pkg.name} v${pkg.version} | ${pkg.license} License */`,
     },
     plugins: [
-      resolve(), // 解析第三方依赖
-      commonjs(), // 转换 CommonJS 为 ES 模块
-      typescript({
-        tsconfig: "./tsconfig.json",
-        declaration: true, // 必须：生成 .d.ts 文件
-        declarationDir: "dist", // 类型文件输出到 dist 目录
-        rootDir: "src", // 源码根目录
-      }), // TS 编译
-      // 新增：压缩配置（移除注释 + 压缩代码）
+      resolve({
+        // 修复 node-resolve 路径解析警告
+        exportConditions: ["node"],
+        extensions: [".ts", ".js"],
+      }),
+      commonjs(),
+      typescript(baseTsOptions), // 完整 TS 配置（生成类型 + JS）
       terser({
-        compress: {
-          drop_console: false, // 保留 console（如果插件有日志，设为 true 移除）
-          pure_funcs: ["console.log"], // 可选：移除特定 console 方法
-        },
-        mangle: true, // 混淆变量名（进一步减小体积）
+        compress: { drop_console: false, pure_funcs: ["console.log"] },
+        mangle: true,
         format: {
-          comments: false, // 移除所有注释（banner 里的版权注释除外）
+          comments: (node, comment) => /^!/i.test(comment.value), // 仅保留版权注释
         },
       }),
     ],
-    external: ["unist-util-visit", "tslib"], // 排除外部依赖（不打包进产物）
+    external: ["unist-util-visit", "tslib"], // 排除外部依赖
   },
-  // ES 模块版本（适配浏览器/ES 模块）
+  // 2. ES 模块版本（仅生成 JS 产物，复用 CJS 生成的类型文件）
   {
-    input: "src/index.ts",
+    input: pathResolve(__dirname, "src/index.ts"),
     output: {
-      file: "dist/index.esm.js",
+      file: pathResolve(__dirname, "dist/index.esm.js"),
       format: "es",
       sourcemap: false,
       banner: `/*! ${pkg.name} v${pkg.version} | ${pkg.license} License */`,
     },
     plugins: [
-      resolve(),
+      resolve({
+        exportConditions: ["module"],
+        extensions: [".ts", ".js"],
+      }),
       commonjs(),
-      typescript({ tsconfig: "./tsconfig.json" }),
+      // 修复 TS5069 错误：ESM 产物关闭 declarationDir（只关闭不需要的配置）
+      typescript({
+        ...baseTsOptions,
+        declaration: false, // 关闭类型生成（避免重复）
+        declarationDir: undefined, // 清除 declarationDir 配置（核心修复 TS5069）
+      }),
       terser({
         compress: { drop_console: false },
         mangle: true,
-        format: { comments: false },
+        format: { comments: (node, comment) => /^!/i.test(comment.value) },
       }),
     ],
     external: ["unist-util-visit", "tslib"],
