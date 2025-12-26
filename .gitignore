@@ -7,7 +7,4 @@ dist/
 # 3. 测试输出文件（我们生成的 MDAST/HTML 调试文件）
 test/mdast-output.json
 test/html-output.html
- 
- 
-
- 
+account/
